@@ -1,4 +1,4 @@
-# hello-world
+# Hello
 
 This is basically one of my first repo
 
