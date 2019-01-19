@@ -1,5 +1,8 @@
 STAT-702.zip
 *.mp4
+*.mp3
+*.jpg
+*.png
 videos/
 Solution_to_ISLR/
 Getting Started/Stat 602 Questionnaire.pdf
