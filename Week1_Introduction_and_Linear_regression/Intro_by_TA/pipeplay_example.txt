@@ -1,0 +1,12 @@
+library(dplyr)
+library(magrittr)
+datx = rnorm(20,1,2)
+
+sum.x = function(x){
+   return(summary(x))
+}
+
+sum.x(datx)
+
+datx %>% sum.x
+datx %>% mean
