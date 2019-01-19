@@ -1,4 +1,6 @@
-STAT-702.zip
+*.zip
+*.pdf
+*.docx
 *.mp4
 *.mp3
 *.jpg
@@ -7,3 +9,6 @@ videos/
 Solution_to_ISLR/
 Getting Started/Stat 602 Questionnaire.pdf
 Getting Started/Stat 602 Questionnaire1.docx
+TextBooks/
+Syllabus_and_schedule/
+Supplementery_Textbook/
