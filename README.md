@@ -1,6 +1,7 @@
-# Hello
+# mas - Modern Applied Statistics Course
 
-This is basically one of my first repo
+This features most of the course work for mas
 
-## Next topic
-Getting used to GitHub
+## Text Books
+    * ISLR
+    * ADAfaEPoV
