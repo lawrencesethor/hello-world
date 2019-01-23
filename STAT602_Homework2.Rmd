@@ -1,0 +1,770 @@
+---
+title: "STAT 602 Modern Applied Statistics"
+author: "Segbehoe, Lawrence Sethor"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    df_print: paged
+    toc: yes
+    toc_depth: '3'
+  pdf_document:
+    fig_caption: yes
+    toc: yes
+    toc_depth: 3
+header-includes:
+- \usepackage{amsthm}
+- \usepackage{bbm}
+---
+
+\large
+\vfill
+Collaboration: none
+
+\newpage
+\listoftables
+\newpage
+\listoffigures
+\newpage
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = F, message = F, warning = F)
+```
+
+
+
+```{r packs, eval=F}
+install.packages("ISLR")
+install.packages("knitr")
+install.packages("ggplot2")
+install.packages("gridExtra")
+install.packages("GGally")
+install.packages("MASS")
+install.packages("captioner")
+install.packages("stringr")
+# install.packages("bookdown")
+```
+
+```{r libs}
+library(ISLR)
+library(knitr)
+library(ggplot2)
+library(gridExtra)
+library(GGally)
+library(MASS)
+library(captioner)
+library(stringr)
+# library(bookdown)
+
+
+## For getting referencing caption for figures and tables
+table_captions <- captioner::captioner(prefix="Table ")
+figure_captions <- captioner::captioner(prefix="Figure ")
+
+t.ref <- function(label){
+  stringr::str_extract(table_captions(label), "[^:]*")
+}
+
+f.ref <- function(label){
+  stringr::str_extract(figure_captions(label), "[^:]*")
+}
+```
+
+
+\newpage
+
+# Question 1 (3.7.5 pg 121)
+
+Consider the fitted values that result from performing linear regression without an intercept. In this setting, the $i$th fitted value takes
+the form
+
+\begin{align}
+\hat{y}_i = x_i\hat{\beta},
+\end{align}
+
+where
+
+\begin{align}
+\hat{\beta} = \left(\sum_{i=1}^nx_iy_i\right)/\left(\sum_{i'=1}^nx_{i'}^2\right).
+\end{align}
+
+show that we can write
+
+\begin{align}
+\hat{y}_i =  \sum_{i'=1}^na_{i'}y_{i'}
+\end{align}
+
+What is $a_{i'}$ ?
+
+*Note: We interpret this result by saying that the fitted values from linear regression are linear combinations of the response values.*
+
+
+## Solution to Question 1
+
+$$ \hat{y}_{i} = x_{i} \times \frac{\sum_{i'=1}^{n}\left ( x_{i'} y_{i'} \right )}{\sum_{j=1}^{n} x_{j}^{2}} $$
+
+$$ \hat{y}_{i} = \sum_{i'=1}^{n} \frac{\left ( x_{i'} y_{i'} \right ) \times x_{i}}{\sum_{j=1}^{n} x_{j}^{2}} $$
+
+$$ \hat{y}_{i} = \sum_{i'=1}^{n} \left ( \frac{ x_{i} x_{i'} } { \sum_{j=1}^{n} x_{j}^{2} } \times y_{i'} \right ) $$
+
+$$ \hat{y}_{i} = \sum_{i'=1}^{n} \left ( a_{i'} \times y_{i'} \right ) $$
+
+where $a_{i'}$ is given by
+
+$$ a_{i'} = \frac{ x_{i} x_{i'} } { \sum_{j=1}^{n} x_{j}^{2} } $$
+
+
+\newpage
+
+# Quesion 2 (3.7.10 pg 123)
+
+This question should be answered using the `Carseats` data set. 
+
+(a) Fit a multiple regression model to predict `Sales` using `Price`, `Urban`, and `US`.
+(b) Provide an interpretation of each coefficient in the model. Be careful --some of the variables in the model are qualitative!
+(c) Write out the model in equation form, being careful to handle the qualitative variables properly.
+(d) For which of the predictors can you reject the null hypothesis $H_0 : \beta_j = 0$?
+(e) On the basis of your response to the previous question, fit a smaller model that only uses the predictors for which there is evidence of association with the outcome.
+(f) How well do the models in (a) and (e) fit the data?
+(g) Using the model from (e), obtain 95\% confidence intervals for the coefficient(s).
+(h) Is there evidence of outliers or high leverage observations in the model from (e)?
+
+## Solution to Question 2
+
+### Part (a)
+
+```{r headCarseats, fig.cap= table_captions("hC","First 6 rows of Carseats data set")}
+data(Carseats)
+
+kable(head(Carseats[,-4]), caption = "First 6 rows of Carseats data set")
+```
+
+
+```{r}
+Carseats.lm1 <- lm(Sales ~ Price + Urban + US, data=Carseats)
+```
+
+
+
+```{r summary1, fig.cap=table_captions("sum1")}
+kable(round(summary(Carseats.lm1)$coeff,4), 
+      caption = "Summary of Coefficients of Carseat Model")
+```
+
+
+`r t.ref("sum1")` shows the summary of the only the coefficients from the fitted model. Price and USYes are significant at 5\% level of significance.
+
+### Part (b)
+
+`Sales` refers to unit sales (in thousands) at each location.\
+`Price` refers to price charged for car seats at each site.\
+`Urban` is a factor with levels No and Yes to indicate whether the store is in an urban or rural location.\
+`US` is a factor with levels No and Yes to indicate whether the store is in the US or not.
+
+**Interpretation for the Coefficients** 
+
+Price
+
+  * A dollar increase in price will decrease sales by 0.0545 unit sales (in thousands of dollars) if all other predictors are held constant. 
+  * Based on the p-value of price, we can say that price given this model. 
+
+Urban
+
+  * Unit sales (in thousands of dollars) is 0.0219 lower for stores in urban locations than the stores in rural locations for any given levels of other predictors.
+  * Stores in urban locations are not statistically significant.
+
+US
+
+  * Unit Sales (in thousands of dollars) is 1.2006 higher in the US locations than non US locations.
+  * Store in US locations are statistically significant.
+
+
+### Part (c)
+
+$$
+Urban = \left\{
+        \begin{array}{ll}
+            1 \quad \text{or}\quad \text{yes} & \quad \text{If the store is in an urban location} \\
+            0 \quad \text{or}\quad \text{no}& \quad \text{If the store is not in an urban location}
+        \end{array}
+\right.
+$$
+
+
+$$
+US = \left\{
+        \begin{array}{ll}
+            1 \quad \text{or}\quad \text{yes} & \quad \text{If the store is US} \\
+            0 \quad \text{or}\quad \text{no}& \quad \text{If the store is not US}
+        \end{array}
+\right. 
+$$
+
+
+
+\begin{align*}
+\widehat{\text{Sales}} = 13.0435 - 0.0545 \times (\text{Price}) - 0.022 \times (\text{Urban}) + 1.201 \times (\text{US})
+\end{align*}
+
+
+
+### Part (d)
+
+We can reject null hypothesis for `Price` and `US` since they both have almost zero (0) p-value and based on 5\% level of significance.
+
+\newpage
+
+### Part (e)
+
+```{r fig.cap= table_captions("sum2")}
+Carseats.lm2 <- lm(Sales ~ Price + US, data=Carseats)
+kable(summary(Carseats.lm2)$coeff, caption = "Coefficients of Carseats.lm2 model")
+```
+
+In `r t.ref("sum2")`, the two predictors are significant at 5\% level of significance.
+
+### Part (f)
+
+```{r aic, fig.cap=table_captions("aic")}
+AIC_Carseats.lm1 <- AIC(Carseats.lm1)
+AIC_Carseats.lm2 <- AIC(Carseats.lm2)
+MSE_Carseats.lm1 <- sum((fitted(Carseats.lm1) - Carseats$Sales)^2)
+MSE_Carseats.lm2 <- sum((fitted(Carseats.lm2) - Carseats$Sales)^2)
+
+dat <- data.frame(c(AIC_Carseats.lm1,MSE_Carseats.lm1),c(AIC_Carseats.lm2,  MSE_Carseats.lm2))
+names(dat) <- c("Carseats.lm1","Carseats.lm2")
+rownames(dat) <- c("AIC","MSE")
+kable(dat, caption = "Comparing the two models")
+```
+
+<!-- ```{r} -->
+<!-- ress1 <- figure_captions("res1","Comparing the two models using residual plots") -->
+<!-- ``` -->
+
+
+
+```{r res1,fig.height=4 , fig.cap = "\\label{res1}Comparing the two models using residual plots"}
+par(mfrow = c(1,2))
+plot(Carseats.lm1, which = 1)
+legend("topleft", legend = "Model 1")
+plot(Carseats.lm2, which = 1)
+legend("topleft", legend = "Model 2")
+par(mfrow =  c(1,1))
+```
+
+
+```{r res2, fig.height=4, fig.cap = "\\label{res2}Comparing the two models using Q-Q plots"}
+par(mfrow = c(1,2))
+plot(Carseats.lm1, which = 2)
+legend("topleft", legend = "Model 1")
+plot(Carseats.lm2, which = 2)
+legend("topleft", legend = "Model 2")
+par(mfrow =  c(1,1))
+```
+    
+#### Comments on Part (f)
+
+From the  Figure \ref{res1} and Figure \ref{res2} , it is noticed that both of them have a **very good fit** of the data set judging from the even spread of the residual plots around the zero (0) line and from the Q-Q plots points are all aligned fairly on the 45\% line.
+
+Also from `r t.ref("aic")`, it is notice that AIC for `Carseats.lm1` is more than that of `Carseats.lm2` which makes the latter a better model. However, the MSE of the `Carseats.lm1` is less than that of the `Carseats.lm2` which makes the former a better model. 
+
+Hence, they models show a good fit of the data set and there is no clear distinction between both except that one is based on one less number of predictors.
+
+### Part (g)
+
+```{r fig.cap= table_captions("ci")}
+kable(confint(Carseats.lm2), caption = "95% Confidence interval")
+```
+
+`r t.ref("ci")` shows the 95\% confidence interval from the the coefficients in the model `Carseats.lm2`. Hence, we are 95\% confident that the true population coefficients fall with the intervals given in the `r t.ref("ci")` for respective coefficients
+
+\newpage
+
+### Part (h)
+
+```{r , fig.height=5, fig.cap="\\label{res3}Residual analysis plots from Carseats.lm2"}
+par(mfrow=c(2,2))
+# residuals v fitted plot doesn't show strong outliers
+plot(Carseats.lm2) 
+par(mfrow=c(1,1))
+```
+
+Yes, from Figure \ref{res3} there is evidence of outliers from the Residual vs Leverage plot since a few of the observation goes beyond the Cook's distance threshold. From the same Figure \ref{res3} and under the Residual vs Leverage plot, it is noticed that some observations have high leverage values and far away from the rest of the observations.
+
+\newpage
+
+# Question 3 (3.7.15 pg 126)
+
+This problem involves the Boston data set, which we saw in the lab for this chapter. We will now try to predict per capita crime rate using the other variables in this data set. In other words, per capita crime rate is the response, and the other variables are the predictors.
+
+(a) For each predictor, fit a simple linear regression model to predict the response. Describe your results. In which of the models is there a statistically significant association between the predictor and the response? Create some plots to back up your assertions.
+
+(b) Fit a multiple regression model to predict the response using all of the predictors. Describe your results. For which predictors can we reject the null hypothesis $H_0 : \beta_j = 0$?
+
+(c) How do your results from (a) compare to your results from (b)? Create a plot displaying the univariate regression coefficients from (a) on the x-axis, and the multiple regression coefficients from (b) on the y-axis. That is, each predictor is displayed as a single point in the plot. Its coefficient in a simple linear regression model is shown on the x-axis, and its coefficient estimate in the multiple linear regression model is shown on the y-axis.
+
+(d) Is there evidence of non-linear association between any of the predictors and the response? To answer this question, for each predictor X, fit a model of the form 
+
+\begin{align*}
+Y = \beta_0 + \beta_1 X + \beta_2 X^2 + \beta_3 X^3 + \epsilon
+\end{align*}
+
+
+
+## Solution to Question 3
+
+
+### Part (a)
+
+```{r fig.cap=table_captions("bostontable")}
+data(Boston)
+kable(head(Boston), caption = "First 6 rows of Boston data set")
+```
+
+`r t.ref("bostontable")` shows the parts of the boston data set used for this question.
+
+```{r fig.cap=table_captions("fit.zn")}
+fit.zn <- lm(crim ~ zn, data = Boston)
+kable(summary(fit.zn)$coeff, caption = "Coefficients of fit.zn model")
+```
+
+From `r t.ref("fit.zn")`, the zn is significant and hence there is association between the per capita crime rate and zn.
+
+Also from Figure \ref{fig:fit.zn}, left hand panel residual plot start fairly well with the points aligned to the zero threshold but higher variance at the tail end. This is shown by the asymmetric display of the Q-Q plot on the right hand panel.
+
+```{r, fig.cap="\\label{fig:fit.zn}Residual plots for fit.zn model", fig.height=3}
+# plot(crim ~ zn, data = Boston)
+# abline(fit.zn)
+par(mfrow  = c(1,2))
+plot(fit.zn, which = 1)
+legend("topleft", legend = "zn")
+plot(fit.zn, which = 2)
+legend("topleft", legend = "zn")
+```
+
+
+```{r, fig.cap=table_captions("fit.indus")}
+fit.indus <- lm(crim ~ indus, data = Boston)
+kable(summary(fit.indus)$coeff, caption = "Coefficents of fit.indus model")
+```
+
+From `r t.ref("fit.indus")`, indus is significant and hence there is association between the per capita crime rate and indus.
+
+Also from Figure \ref{fig:fit.indus}, left hand panel residual plot start fairly well with the points aligned to the zero threshold but higher variance around the mid section of the plot. This is shown by the asymmetric display of the Q-Q plot on the right hand panel.
+
+```{r, fig.cap="\\label{fig:fit.indus}Residual plots for fit.indus model", fig.height=3}
+par(mfrow  = c(1,2))
+plot(fit.indus, which = 1)
+legend("topleft", legend = "indus")
+plot(fit.indus, which = 2)
+legend("topleft", legend = "indus")
+```
+
+
+
+```{r, fig.cap=table_captions("fit.chas")}
+fit.chas <- lm(crim ~ chas, data = Boston)
+kable(summary(fit.chas)$coeff, caption = "Coefficients of fit.chaos model")
+```
+
+\newpage
+
+From `r t.ref("fit.chas")`, the chas is **not** significant and hence there is no association between the per capita crime rate and chas.
+
+Also from Figure \ref{fig:fit.chas}, left hand panel residual plot start fairly well with the points aligned to the zero threshold but higher variance at the tail end. This is shown by the asymmetric display of the Q-Q plot on the right hand panel.
+
+```{r, fig.cap= "\\label{fig:fit.chas} Residual plot for fit.chaos model", fig.height=3}
+par(mfrow  = c(1,2))
+plot(fit.chas, which = 1)
+legend("topleft", legend = "chas")
+plot(fit.chas, which = 2)
+legend("topleft", legend = "chas")
+```
+
+
+
+```{r, fig.cap=table_captions("fit.nox")}
+fit.nox <- lm(crim ~ nox, data = Boston)
+kable(summary(fit.nox)$coeff, caption = "Coefficients of fit.nox model")
+```
+
+From `r t.ref("fit.nox")`, nox is significant and hence there is association between the per capita crime rate and nox.
+
+Also from Figure \ref{fig:fit.nox}, left hand panel residual plot start fairly well with the points aligned to the zero threshold but higher variance at the middle of the plot. This is shown by the asymmetric display of the Q-Q plot on the right hand panel.
+
+```{r , fig.cap="\\label{fig:fit.nox} Residual plot for fit.nox model", fig.height=3}
+# names(Boston)
+par(mfrow  = c(1,2))
+plot(fit.nox, which = 1)
+legend("topleft", legend = "nox")
+plot(fit.nox, which = 2)
+legend("topleft", legend = "nox")
+```
+
+
+```{r, fig.cap=table_captions("fit.rm")}
+fit.rm <- lm(crim ~ rm, data = Boston)
+kable(summary(fit.rm)$coeff, caption = "Coefficients of fit.rm model")
+```
+
+
+\newpage
+
+
+From `r t.ref("fit.rm")`, rm is significant and hence there is association between the per capita crime rate and rm.
+
+Also from Figure \ref{fig:fit.rm}, left hand panel residual plot start fairly well with the points aligned to the zero threshold but higher variance at the mid-section toward the end of the plot. This is show by the asymmetric display of the Q-Q plot on the right hand panel.
+
+
+```{r , fig.cap="\\label{fig:fit.rm} Residual plot for fit.rm model", fig.height=3}
+par(mfrow = c(1,2))
+plot(fit.rm, which = 1)
+legend("topleft", legend = "rm")
+plot(fit.rm, which = 2)
+legend("topleft", legend = "rm")
+```
+
+
+```{r , fig.cap=table_captions("fit.age")}
+fit.age <- lm(crim ~ age, data = Boston)
+kable(summary(fit.age)$coeff, caption = "Coefficients of fit.age model")
+```
+
+From `r t.ref("fit.age")`, age is significant and hence there is association between the per capita crime rate and age.
+
+Also from Figure \ref{fig:fit.age}, left hand panel residual plot start fairly well with the points aligned to the zero threshold but higher variance toward the end. This is show by the asymmetric display of the Q-Q plot on the right hand panel.
+
+
+```{r, fig.height = 3,fig.cap="\\label{fig:fit.age} Residual plot of fit.age model"}
+par(mfrow = c(1,2))
+plot(fit.age, which = 1)
+legend("topleft", legend = "age")
+plot(fit.age, which = 2)
+legend("topleft", legend = "age")
+```
+
+
+```{r, fig.cap=table_captions("fit.dis")}
+fit.dis <- lm(crim ~ dis, data = Boston)
+kable(summary(fit.dis)$coeff, caption = "Coefficients of fit.dis model")
+```
+
+\newpage
+
+From `r t.ref("fit.dis")`, dis is significant and hence there is association between the per capita crime rate and dis.
+
+Also from Figure \ref{fig:fit.dis}, left hand panel residual plot start fairly well with the points aligned to the zero threshold but higher variance at the tail end. This is show by the asymmetric display of the Q-Q plot on the right hand panel.
+
+```{r , fig.cap="\\label{fig:fit.dis} Residual plot for fit.dis model", fig.height = 3}
+par(mfrow = c(1,2))
+plot(fit.dis, which = 1)
+legend("topleft", legend = "dis")
+plot(fit.dis, which = 2)
+legend("topleft", legend = "dis")
+```
+
+
+```{r, fig.cap=table_captions("fit.rad")}
+fit.rad <- lm(crim ~ rad, data = Boston)
+kable(summary(fit.rad)$coeff, caption = "Coefficients of fit.rad model")
+```
+
+From `r t.ref("fit.rad")`, rad is significant and hence there is association between the per capita crime rate and rad.
+
+Also from Figure \ref{fig:fit.rad}, left hand panel residual plot start fairly well with the points aligned to the zero threshold but higher variance at the tail end. This is show by the asymmetric display of the Q-Q plot on the right hand panel.
+
+```{r , fig.cap="\\label{fig:fit.rad} Residual plot for fit.rad model", fig.height = 3}
+par(mfrow = c(1,2))
+plot(fit.rad, which = 1)
+legend("topleft", legend = "rad")
+plot(fit.rad, which = 2)
+legend("topleft", legend = "rad")
+```
+
+
+
+```{r , fig.cap=table_captions("fit.tax")}
+fit.tax <- lm(crim ~ tax, data = Boston)
+kable(summary(fit.tax)$coeff,caption = "Coefficients of fit.tax model")
+```
+
+\newpage
+
+From `r t.ref("fit.tax")`, tax is significant and hence there is association between the per capita crime rate and tax.
+
+Also from Figure \ref{fig:fit.tax}, left hand panel residual plot start fairly well with the points aligned to the zero threshold but higher variance at the tail end. This is show by the asymmetric display of the Q-Q plot on the right hand panel.
+
+```{r , fig.cap="\\label{fig:fit.tax} Residual plot for fit.rad model", fig.height = 3}
+par(mfrow = c(1,2))
+plot(fit.tax, which = 1)
+legend("topleft", legend = "tax")
+plot(fit.tax, which = 2)
+legend("topleft", legend = "tax")
+```
+
+
+```{r , fig.cap=table_captions("fit.ptratio")}
+fit.ptratio <- lm(crim ~ ptratio, data = Boston)
+kable(summary(fit.ptratio)$coeff, caption = "Coefficients of fit.ptratio model")
+```
+
+From `r t.ref("fit.ptratio")`, ptratio is significant and hence there is association between the per capita crime rate and ptratio.
+
+Also from Figure \ref{fig:fit.ptratio}, left hand panel residual plot start fairly well with the points aligned to the zero threshold but higher variance toward the end. This is show by the asymmetric display of the Q-Q plot on the right hand panel.
+
+```{r, fig.cap="\\label{fig:fit.ptratio}Residual plot of fit.ptratio model", fig.height = 3}
+par(mfrow = c(1,2))
+plot(fit.ptratio, which = 1)
+legend("topleft", legend = "ptratio")
+plot(fit.ptratio, which = 2)
+legend("topleft", legend = "ptratio")
+# names(Boston)
+```
+
+
+```{r , fig.cap=table_captions("fit.black")}
+fit.black <- lm(crim ~ black, data = Boston)
+kable(summary(fit.black)$coeff, caption = "Coefficient of fit.black model")
+```
+
+
+\newpage
+
+From `r t.ref("fit.black")`, black is significant and hence there is association between the per capita crime rate and black.
+
+Also from Figure \ref{fig:fit.black}, left hand panel residual plot start with most points the beginning, very few in the mid-section and some the rest of the points towards the end. There is somewhat even variability there. The Q-Q plot gives asymmetric picture of the residuals on the right hand panel.
+
+```{r ,fig.cap="\\label{fig:fit.black} Residual plot of fit.black model", fig.height = 3}
+par(mfrow = c(1,2))
+plot(fit.black, which = 1)
+legend("topleft", legend = "black")
+plot(fit.black, which = 2)
+legend("topleft", legend = "black")
+```
+
+
+
+```{r , fig.cap=table_captions("fit.lstat")}
+fit.lstat <- lm(crim ~ lstat, data = Boston)
+kable(summary(fit.lstat)$coeff, caption = "Coefficients of fit.lstat model")
+```
+
+From `r t.ref("fit.lstat")`, lstat is significant and hence there is association between the per capita crime rate and lstat.
+
+Also from Figure \ref{fig:fit.lstat}, left hand panel residual plot start fairly well with the points aligned to the zero threshold but higher variance at the tail end. This is show by the asymmetric display of the Q-Q plot on the right hand panel.
+
+```{r, fig.cap="\\label{fig:fit.lstat} Residual plot of fit.lstat model", fig.height = 3}
+par(mfrow = c(1,2))
+plot(fit.lstat, which = 1)
+legend("topleft", legend = "lstat")
+plot(fit.lstat, which = 2)
+legend("topleft", legend = "lstat")
+```
+
+
+
+```{r , fig.cap=table_captions("fit.medv")}
+fit.medv <- lm(crim ~ medv, data = Boston)
+kable(summary(fit.medv)$coeff, caption = "Coefficients of fit.medv model")
+```
+
+\newpage 
+
+From `r t.ref("fit.medv")`, lstat is significant and hence there is association between the per capita crime rate and lstat.
+
+Also from Figure \ref{fig:fit.medv}, left hand panel residual plot start fairly well with the points aligned to the zero threshold but higher variance at the tail end. This is show by the asymmetric display of the Q-Q plot on the right hand panel.
+
+```{r, fig.cap="\\label{fig:fit.medv} Residual plot of fit.lstat model", fig.height = 3}
+par(mfrow = c(1,2))
+plot(fit.medv, which = 1)
+legend("topleft", legend = "medv")
+plot(fit.medv, which = 2)
+legend("topleft", legend = "medv")
+```
+
+
+
+
+### Part (b)
+
+
+```{r , fig.cap=table_captions("fit.multiple")}
+fit.multiple <- lm(crim ~ . , data = Boston)
+kable(summary(fit.multiple)$coeff, caption = "Coefficients of fit.multiple model")
+```
+
+
+
+  * From `r t.ref("fit.multiple")`  We can reject the null hypothesis $H_0 : \beta_j = 0$ for the following predictors at 5\% level of significance: **zn**, **rm**, **dis**, **rad**, **black**, **medv**.
+
+\newpage
+
+### Part (c)
+
+From Figure \ref{muplot}, we see that most of the are crowded around the origin. That is the point (0,0). There is however an outlier in this plot which is related to **nox**.
+
+```{r , fig.cap= "\\label{muplot}Plot of the Multi. coefficient against the Uni. coefficients", fig.height= 5, fig.width=7}
+## lm function for combn
+combnMatrix <- combn(names(Boston), 2)[1:2,1:13]
+lm.fun <- function(x){
+  coefficients(lm(Boston[, x]))[2]
+}
+Univariate_coeff <- combn(names(Boston), 2, lm.fun)[1:13]
+
+
+Multivarite_coeff <- coef(fit.multiple)[-1]
+UMdata <- data.frame(Univariate_coeff, Multivarite_coeff)
+
+plot(Multivarite_coeff ~ Univariate_coeff, 
+     main = "Multi. vs Univariate Coefficients")
+
+```
+
+
+
+
+
+```{r, fig.cap="\\label{gg}GGPLOT for the univarite vs multivariate coefficients",  fig.height= 3, fig.width=5}
+ggplot(UMdata, aes(x = Univariate_coeff, y = Multivarite_coeff)) + geom_point() + labs( title = "Multi. vs Univariate Coefficients") + 
+  geom_text(y = Multivarite_coeff+2.5 , label = rownames(UMdata))
+```
+
+\newpage
+
+### Part (d)
+
+
+```{r}
+cubicModel <- function(predictor, dat = Boston){
+  stopifnot(is.data.frame(dat))
+  # get predictor
+  v <- names(dat)[predictor]
+  
+  # get pieces of the formula together
+  aa <- paste(v)
+  bb <- paste(v,v, sep = "*")
+  bb <- paste("I","(",bb,")", sep = "")
+  cc <- paste(v,v,v,sep = "*")
+  cc <- paste("I", "(",cc,")", sep = "")
+  formulA <- paste(aa,bb,cc,sep = " + ")
+  # final formula
+  formulA <- as.formula(paste(names(dat)[1], formulA, sep = "~"))
+  # fit the cubic model
+  modelName <- paste0("cubicModel.",v)
+  modelName <- lm(formulA, data = dat)
+  
+  # get the table of coefficients
+  return(kable(summary(modelName)$coeff, 
+               caption = paste("Coefficients of cubic model from ", v)))
+}
+
+```
+
+
+```{r, fig.cap=table_captions("zn3")}
+cubicModel(2)
+```
+
+From `r t.ref("zn3")`, it is observed that is the is no  non-linear relationship between the response and the zn.
+
+```{r, fig.cap=table_captions("indus3")}
+cubicModel(3)
+```
+
+
+
+From `r t.ref("indus3")`, it is observed that is the is a non-linear relationship between the response and the indus.
+
+\newpage
+
+```{r, fig.cap=table_captions("chas3")}
+cubicModel(4)
+```
+
+
+From `r t.ref("chas3")`, it is observed that is the is no non-linear relationship between the response and the chas.
+
+
+```{r, fig.cap=table_captions("nox3")}
+cubicModel(5)
+```
+
+
+From `r t.ref("nox3")`, it is observed that is the is a non-linear relationship between the response and the nox.
+
+
+
+```{r, fig.cap=table_captions("rm3")}
+cubicModel(6)
+```
+
+
+From `r t.ref("rm3")`, it is observed that is the is **no** non-linear relationship between the response and the rm.
+
+
+
+```{r, fig.cap=table_captions("age3")}
+cubicModel(7)
+```
+
+
+
+From `r t.ref("age3")`, it is observed that is the is a non-linear relationship between the response and the age.
+
+
+
+
+```{r, fig.cap=table_captions("dis3")}
+cubicModel(8)
+```
+
+
+From `r t.ref("dis3")`, it is observed that is the is a non-linear relationship between the response and the dis.
+
+
+
+
+```{r, fig.cap=table_captions("rad3")}
+cubicModel(9)
+```
+
+
+From `r t.ref("rad3")`, it is observed that is the is **no** non-linear relationship between the response and the rad.
+
+
+
+```{r, fig.cap=table_captions("tax3")}
+cubicModel(10)
+```
+
+
+From `r t.ref("tax3")`, it is observed that is the is **no** non-linear relationship between the response and the tax.
+
+
+
+```{r, fig.cap=table_captions("ptratio3")}
+cubicModel(11)
+```
+
+
+From `r t.ref("ptratio3")`, it is observed that is the is a non-linear relationship between the response and the ptratio.
+
+
+
+```{r, fig.cap=table_captions("black3")}
+cubicModel(12)
+```
+
+
+From `r t.ref("black3")`, it is observed that is the **no** a non-linear relationship between the response and the black.
+
+
+
+```{r, fig.cap=table_captions("lstat3")}
+cubicModel(13)
+```
+
+
+From `r t.ref("lstat3")`, it is observed that is the **no** non-linear relationship between the response and the lstat.
+
+
+
